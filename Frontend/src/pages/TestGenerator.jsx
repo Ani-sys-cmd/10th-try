@@ -82,13 +82,7 @@ const TestGenerator = () => {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-xs font-medium text-muted-foreground mb-1">Model</label>
-                                <select className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors">
-                                    <option>Gemini 1.5 Pro</option>
-                                    <option>GPT-4o</option>
-                                </select>
-                            </div>
+
                         </div>
                     </Card>
 

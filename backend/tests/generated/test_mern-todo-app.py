@@ -1,124 +1,128 @@
 import pytest
 import requests
 
-# 1. Define a fixture for the base URL
+# 1. Define a fixture for the base URL.
 @pytest.fixture
 def base_url():
-    """
-    Provides the base URL for the API.
-    The original port 5000 caused a ConnectionRefusedError. MERN stack
-    backends often run on a different port like 3001.
-    """
-    return "http://localhost:3001"
+    """Provides the base URL for the API."""
+    return "http://localhost:5000"
 
-# 2. Write test functions for each endpoint
+# 2. Write test functions for each endpoint.
 
-def test_forgot_password_empty_payload(base_url):
+def test_forgot_password(base_url):
     """
-    Tests the POST /forgotPassword endpoint with an empty payload.
-    It's expected to fail with a client error (e.g., 400) as an email is likely required.
+    Tests the POST /forgotPassword endpoint.
+    This test sends an empty payload, which is expected to fail
+    as an email is likely required. A 400 Bad Request or similar
+    client error is the expected outcome.
     """
     url = f"{base_url}/forgotPassword"
     payload = {}
     response = requests.post(url, json=payload)
     
-    # Assuming the server requires data and will return a 400 Bad Request
-    expected_status_code = 400
+    # CRITICAL: Assert status code and print response text on failure.
+    expected_status_code = 400  # Assuming 400 for missing required fields.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_reset_password_empty_payload(base_url):
+def test_reset_password(base_url):
     """
-    Tests the POST /resetPassword endpoint with an empty payload.
-    It's expected to fail as a token and new password are likely required.
+    Tests the POST /resetPassword endpoint.
+    This test sends an empty payload, which is expected to fail
+    as a reset token and new password are likely required. A 400 Bad Request
+    is the expected outcome.
     """
     url = f"{base_url}/resetPassword"
     payload = {}
     response = requests.post(url, json=payload)
     
-    # Assuming the server requires data and will return a 400 Bad Request
-    expected_status_code = 400
+    expected_status_code = 400  # Assuming 400 for missing required fields.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_add_task_empty_payload(base_url):
+def test_add_task(base_url):
     """
-    Tests the POST /addTask endpoint with an empty payload.
-    It's expected to fail as task data and likely auth are required.
+    Tests the POST /addTask endpoint.
+    This endpoint likely requires authentication and a valid payload.
+    Sending an empty payload without auth should result in an error.
+    A 401 Unauthorized or 400 Bad Request is expected.
     """
     url = f"{base_url}/addTask"
     payload = {}
     response = requests.post(url, json=payload)
     
-    # Assuming the server requires data and will return a 400 or 401. 400 is a safe bet for missing data.
-    expected_status_code = 400
+    expected_status_code = 401  # Assuming 401 as it's likely a protected route.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_get_task_no_params(base_url):
+def test_get_task(base_url):
     """
-    Tests the GET /getTask endpoint without any parameters.
-    It's expected to fail if a task ID or user context is required.
+    Tests the GET /getTask endpoint.
+    This endpoint likely requires authentication to fetch user-specific tasks.
+    An unauthenticated request is expected to fail.
+    A 401 Unauthorized is the expected outcome.
     """
     url = f"{base_url}/getTask"
     response = requests.get(url)
     
-    # A route like /getTask/<id> is common. A request to the base /getTask would likely be Not Found.
-    expected_status_code = 404
+    expected_status_code = 401  # Assuming 401 as it's likely a protected route.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_remove_task_no_params(base_url):
+def test_remove_task(base_url):
     """
-    Tests the DELETE /removeTask endpoint without any parameters.
-    It's expected to fail as a task ID is likely required.
+    Tests the GET /removeTask endpoint.
+    This endpoint likely requires authentication and a task identifier.
+    An unauthenticated request is expected to fail.
+    A 401 Unauthorized is the expected outcome.
     """
     url = f"{base_url}/removeTask"
-    # Corrected method from GET to DELETE for a removal operation.
-    response = requests.delete(url)
+    response = requests.get(url) # As specified in the prompt
     
-    # Assuming the server requires a task identifier in the path, the base endpoint would not be found.
-    expected_status_code = 404
+    expected_status_code = 401  # Assuming 401 as it's likely a protected route.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_login_empty_payload(base_url):
+def test_login(base_url):
     """
-    Tests the POST /login endpoint with an empty payload.
-    It's expected to fail as credentials are required.
+    Tests the POST /login endpoint.
+    Sending an empty payload should fail as credentials (e.g., email, password)
+    are required for login.
+    A 400 Bad Request or 401 Unauthorized is the expected outcome.
     """
     url = f"{base_url}/login"
     payload = {}
     response = requests.post(url, json=payload)
     
-    # Assuming the server requires credentials and will return a 400 Bad Request.
-    expected_status_code = 400
+    expected_status_code = 400  # Assuming 400 for missing credentials.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_register_empty_payload(base_url):
+def test_register(base_url):
     """
-    Tests the POST /register endpoint with an empty payload.
-    It's expected to fail as user information is required.
+    Tests the POST /register endpoint.
+    Sending an empty payload should fail as user details (e.g., username, email,
+    password) are required for registration.
+    A 400 Bad Request is the expected outcome.
     """
     url = f"{base_url}/register"
     payload = {}
     response = requests.post(url, json=payload)
     
-    # Assuming the server requires user data and will return a 400 Bad Request.
-    expected_status_code = 400
+    expected_status_code = 400  # Assuming 400 for missing user details.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
 
-def test_get_user_unauthorized(base_url):
+def test_get_user(base_url):
     """
-    Tests the GET /getuser endpoint without authentication.
-    It's expected to fail with an authorization error.
+    Tests the GET /getuser endpoint.
+    This endpoint likely requires authentication to fetch user data.
+    An unauthenticated request is expected to fail.
+    A 401 Unauthorized is the expected outcome.
     """
     url = f"{base_url}/getuser"
     response = requests.get(url)
     
-    # Assuming this is a protected route and will return 401 Unauthorized.
-    expected_status_code = 401
+    expected_status_code = 401  # Assuming 401 as it's likely a protected route.
     assert response.status_code == expected_status_code, \
         f"Expected {expected_status_code} but got {response.status_code}. Response: {response.text}"
