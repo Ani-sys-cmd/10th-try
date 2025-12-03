@@ -14,56 +14,56 @@
         "type_mismatch": 0.0
     },
     "/forgotPassword": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/resetPassword": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/addTask": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/getTask": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/removeTask": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/login": {
-        "standard": -32.90729568693358,
+        "standard": -21.193931112011825,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/register": {
-        "standard": -32.90729568693358,
+        "standard": -21.193931112011825,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/getuser": {
-        "standard": -30.909651154676617,
+        "standard": -29.492708742983027,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
@@ -98,42 +98,42 @@
         "type_mismatch": 0.0
     },
     "/cart": {
-        "standard": -30.965050091818235,
+        "standard": -9.492574741049244,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/cart/:productId": {
-        "standard": -29.962202077323663,
+        "standard": -11.271509847261719,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/checkout": {
-        "standard": -29.962202077323663,
+        "standard": -11.271509847261719,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/": {
-        "standard": -27.296556879559635,
+        "standard": -9.622887402361195,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/:id": {
-        "standard": -27.296556879559635,
+        "standard": -9.622887402361195,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,
         "type_mismatch": 0.0
     },
     "/:productId": {
-        "standard": -30.965050091818235,
+        "standard": -9.492574741049244,
         "null_injection": 0.0,
         "sql_injection": 0.0,
         "overflow": 0.0,

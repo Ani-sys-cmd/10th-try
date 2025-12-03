@@ -99,7 +99,10 @@ const TestRunner = () => {
                                     <span className="text-xl font-bold text-white">{testResults.summary.failed}</span>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                                <div
+                                    onClick={() => testResults.summary.error > 0 && setShowFailureModal(true)}
+                                    className={`flex items-center justify-between p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 ${testResults.summary.error > 0 ? 'cursor-pointer hover:bg-yellow-500/20 transition-colors' : ''}`}
+                                >
                                     <div className="flex items-center gap-3">
                                         <AlertTriangle className="w-5 h-5 text-yellow-400" />
                                         <span className="text-gray-300">Errors</span>

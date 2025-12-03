@@ -1,27 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, CheckCircle, Play, Upload, Zap, BarChart2, FileText } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../api';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        total_runs: 0,
+        passed_runs: 0,
+        avg_reward: 0,
+        active_projects: 0
+    });
+    const [recentActivity, setRecentActivity] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data - replace with real data from context/API later
-    const stats = [
-        { title: 'Total Test Runs', value: '4', icon: Activity, trend: 'up', trendValue: '12%', color: 'blue' },
-        { title: 'Passed Tests', value: '0', icon: CheckCircle, trend: 'up', trendValue: '8%', color: 'green' },
-        { title: 'Average Reward', value: '-40.00', icon: Zap, trend: 'up', trendValue: '15%', color: 'purple' },
-        { title: 'Active Projects', value: '1', icon: FileText, trend: null, trendValue: null, color: 'orange' },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [statsRes, historyRes] = await Promise.all([
+                    api.getDashboardStats(),
+                    api.getHistory()
+                ]);
 
-    const recentActivity = [
-        { id: 1, type: 'success', message: 'Test suite generated successfully', time: '2 minutes ago' },
-        { id: 2, type: 'info', message: 'Project uploaded and scanned', time: '15 minutes ago' },
-        { id: 3, type: 'warning', message: '3 tests failed - healing in progress', time: '1 hour ago' },
-        { id: 4, type: 'success', message: 'All tests passed', time: '2 hours ago' },
+                setStats(statsRes.data);
+
+                // Process history for recent activity
+                const history = historyRes.data.history || [];
+                const activity = history.slice(0, 5).map((run, index) => ({
+                    id: index,
+                    type: run.status === 'passed' ? 'success' : 'warning',
+                    message: `Test run ${run.status}: ${run.project_name}`,
+                    time: new Date(run.timestamp).toLocaleString()
+                }));
+                setRecentActivity(activity);
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const statCards = [
+        { title: 'Total Test Runs', value: stats.total_runs.toString(), icon: Activity, trend: null, trendValue: null, color: 'blue' },
+        { title: 'Passed Tests', value: stats.passed_runs.toString(), icon: CheckCircle, trend: null, trendValue: null, color: 'green' },
+        { title: 'Average Reward', value: stats.avg_reward.toFixed(2), icon: Zap, trend: null, trendValue: null, color: 'purple' },
+        { title: 'Active Projects', value: stats.active_projects.toString(), icon: FileText, trend: null, trendValue: null, color: 'orange' },
     ];
 
     return (
@@ -44,7 +74,7 @@ const Dashboard = () => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
+                {statCards.map((stat, index) => (
                     <motion.div
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
@@ -65,25 +95,28 @@ const Dashboard = () => {
                                 <Activity className="h-5 w-5 text-blue-500" />
                                 Recent Activity
                             </h3>
-                            <Button variant="ghost" size="sm" className="text-xs">View All</Button>
+                            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/results')}>View All</Button>
                         </div>
                         <div className="space-y-4">
-                            {recentActivity.map((activity, index) => (
-                                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                                    <div className={`mt-1 p-2 rounded-full ${activity.type === 'success' ? 'bg-green-500/20 text-green-500' :
-                                            activity.type === 'warning' ? 'bg-yellow-500/20 text-yellow-500' :
+                            {recentActivity.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">No recent activity found.</p>
+                            ) : (
+                                recentActivity.map((activity, index) => (
+                                    <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                        <div className={`mt-1 p-2 rounded-full ${activity.type === 'success' ? 'bg-green-500/20 text-green-500' :
+                                            activity.type === 'warning' ? 'bg-red-500/20 text-red-500' :
                                                 'bg-blue-500/20 text-blue-500'
-                                        }`}>
-                                        {activity.type === 'success' ? <CheckCircle className="h-4 w-4" /> :
-                                            activity.type === 'warning' ? <Activity className="h-4 w-4" /> :
+                                            }`}>
+                                            {activity.type === 'success' ? <CheckCircle className="h-4 w-4" /> :
                                                 <Activity className="h-4 w-4" />}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-sm">{activity.message}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-sm">{activity.message}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </Card>
                 </div>

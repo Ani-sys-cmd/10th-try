@@ -1,42 +1,79 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { Activity, CheckCircle, Target, BarChart2 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Card from '../components/common/Card';
+import { api } from '../api';
 
 const Analytics = () => {
-    // Mock Data
-    const trendData = [
-        { date: 'Nov 25', failed: 0, passed: 0 },
-        { date: 'Nov 26', failed: 0, passed: 0 },
-        { date: 'Nov 27', failed: 0, passed: 0 },
-        { date: 'Nov 28', failed: 0, passed: 0 },
-        { date: 'Nov 29', failed: 0, passed: 0 },
-        { date: 'Nov 30', failed: 1, passed: 0 },
-        { date: 'Dec 1', failed: 4, passed: 0 },
-    ];
+    const [trendData, setTrendData] = useState([]);
+    const [distributionData, setDistributionData] = useState([]);
+    const [stats, setStats] = useState({
+        total_runs: 0,
+        pass_rate: 0,
+        avg_reward: 0,
+        coverage: 'N/A'
+    });
+    const [loading, setLoading] = useState(true);
 
-    const distributionData = [
-        { name: 'Passed', value: 0, color: '#22c55e' },
-        { name: 'Failed', value: 100, color: '#ef4444' },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const historyRes = await api.getHistory();
+                const history = historyRes.data.history || [];
 
-    const coverageData = [
-        { name: 'API Endpoints', value: 92, color: '#3b82f6' },
-        { name: 'Authentication', value: 88, color: '#8b5cf6' },
-        { name: 'Database', value: 95, color: '#10b981' },
-        { name: 'Business Logic', value: 78, color: '#f59e0b' },
-        { name: 'Error Handling', value: 85, color: '#ef4444' },
-    ];
+                processHistoryData(history);
+            } catch (error) {
+                console.error("Failed to fetch analytics data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const endpointPerformanceData = [
-        { name: '/api/users', time: 45 },
-        { name: '/api/auth', time: 30 },
-        { name: '/api/products', time: 75 },
-        { name: '/api/orders', time: 55 },
-        { name: '/api/analytics', time: 120 },
-    ];
+        fetchData();
+    }, []);
+
+    const processHistoryData = (history) => {
+        // 1. Calculate Top Stats
+        const totalRuns = history.length;
+        const passedRuns = history.filter(h => h.status === 'passed').length;
+        const passRate = totalRuns > 0 ? ((passedRuns / totalRuns) * 100).toFixed(1) : 0;
+
+        const rewards = history.filter(h => h.reward !== undefined).map(h => h.reward);
+        const avgReward = rewards.length > 0 ? (rewards.reduce((a, b) => a + b, 0) / rewards.length).toFixed(1) : 0;
+
+        setStats({
+            total_runs: totalRuns,
+            pass_rate: passRate,
+            avg_reward: avgReward,
+            coverage: 'N/A' // Backend doesn't provide this yet
+        });
+
+        // 2. Process Trend Data (Group by Date)
+        const trends = {};
+        // Sort history by date ascending for the chart
+        const sortedHistory = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        sortedHistory.forEach(run => {
+            const date = new Date(run.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            if (!trends[date]) {
+                trends[date] = { date, passed: 0, failed: 0 };
+            }
+            if (run.status === 'passed') {
+                trends[date].passed += 1;
+            } else {
+                trends[date].failed += 1;
+            }
+        });
+        setTrendData(Object.values(trends));
+
+        // 3. Process Distribution Data
+        setDistributionData([
+            { name: 'Passed', value: passedRuns, color: '#22c55e' },
+            { name: 'Failed', value: totalRuns - passedRuns, color: '#ef4444' },
+        ]);
+    };
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -47,10 +84,10 @@ const Analytics = () => {
 
             {/* Top Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Total Tests" value="4" icon={Activity} trend="up" trendValue="12%" color="blue" />
-                <StatCard title="Pass Rate" value="0%" icon={CheckCircle} trend="up" trendValue="8%" color="green" />
-                <StatCard title="Avg Reward" value="-40.0" icon={Target} trend="up" trendValue="15%" color="purple" />
-                <StatCard title="Coverage" value="87.6%" icon={BarChart2} trend="up" trendValue="5%" color="orange" />
+                <StatCard title="Total Tests" value={stats.total_runs.toString()} icon={Activity} trend={null} trendValue={null} color="blue" />
+                <StatCard title="Pass Rate" value={`${stats.pass_rate}%`} icon={CheckCircle} trend={null} trendValue={null} color="green" />
+                <StatCard title="Avg Reward" value={stats.avg_reward.toString()} icon={Target} trend={null} trendValue={null} color="purple" />
+                <StatCard title="Coverage" value={stats.coverage} icon={BarChart2} trend={null} trendValue={null} color="orange" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -120,54 +157,10 @@ const Analytics = () => {
                 </Card>
             </div>
 
-            {/* Coverage by Module */}
-            <Card>
-                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Target className="h-5 w-5 text-green-500" />
-                    Test Coverage by Module
-                </h3>
-                <div className="space-y-6">
-                    {coverageData.map((item, index) => (
-                        <div key={index} className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="font-medium">{item.name}</span>
-                                <span className="font-bold">{item.value}%</span>
-                            </div>
-                            <div className="h-3 bg-white/5 rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${item.value}%` }}
-                                    transition={{ duration: 1, delay: index * 0.1 }}
-                                    className="h-full rounded-full"
-                                    style={{ backgroundColor: item.color }}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </Card>
-
-            {/* Endpoint Performance */}
-            <Card>
-                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <BarChart2 className="h-5 w-5 text-blue-500" />
-                    Endpoint Performance (Avg Time ms)
-                </h3>
-                <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={endpointPerformanceData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                            <XAxis dataKey="name" stroke="#666" tick={{ fill: '#666' }} axisLine={false} tickLine={false} />
-                            <YAxis stroke="#666" tick={{ fill: '#666' }} axisLine={false} tickLine={false} />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#13131f', borderColor: '#333', borderRadius: '8px' }}
-                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                            />
-                            <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </Card>
+            {/* 
+                NOTE: Coverage and Performance charts hidden as backend does not currently provide this data.
+                To re-enable, backend needs to return 'coverage_data' and 'performance_metrics'.
+            */}
         </div>
     );
 };
